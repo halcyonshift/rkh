@@ -46,13 +46,14 @@ class CTABlock(StructBlock):
         data = super().clean(value)
 
         if data.get('title') and data.get('text') and data.get('text').source:
-            text = strip_tags(data.get('text').source)
-            words = [word for word in data.get('title').split(" ")
-                     if re.search(r'\b{}\b'.format(word), text, flags=re.IGNORECASE)]
+            text = set(re.sub("[^\w]", " ", strip_tags(data.get('text').source).lower()).split())
+            title = set(re.sub("[^\w]", " ", data.get('title').lower()).split())
 
-            if words:
+            matching_words = list(text.intersection(title))
+
+            if matching_words:
                 raise ValidationError('The text field cannot contain any of the words used in the title field', params={
-                    'text': ErrorList(['Please remove the following words: {}.'.format(", ".join(words))])
+                    'text': ErrorList(['Please remove the following words: {}.'.format(", ".join(matching_words))])
                 })
 
         return data
