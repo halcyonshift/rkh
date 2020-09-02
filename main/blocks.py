@@ -3,6 +3,7 @@ import re
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorList
+from django.utils.html import strip_tags
 
 from wagtail.core.blocks import (CharBlock, ChoiceBlock, PageChooserBlock, RichTextBlock, StructBlock, URLBlock)
 
@@ -45,8 +46,9 @@ class CTABlock(StructBlock):
         data = super().clean(value)
 
         if data.get('title') and data.get('text') and data.get('text').source:
+            text = strip_tags(data.get('text').source)
             words = [word for word in data.get('title').split(" ")
-                     if re.search(r'\b{}\b'.format(word), data.get('text').source, flags=re.IGNORECASE)]
+                     if re.search(r'\b{}\b'.format(word), text, flags=re.IGNORECASE)]
 
             if words:
                 raise ValidationError('The text field cannot contain any of the words used in the title field', params={
